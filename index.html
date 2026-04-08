@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Started with Claude Code</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface-hover: #1a1a25;
+      --surface-border: #1e1e2a;
+      --accent: #e8927c;
+      --accent-dim: rgba(232,146,124,0.2);
+      --accent-glow: rgba(232,146,124,0.09);
+      --text: #e8e6e3;
+      --text-sec: #8a8693;
+      --text-tert: #5a5666;
+      --terminal-bg: #08080c;
+      --terminal-green: #7dd3a0;
+      --terminal-cyan: #7cc8d6;
+      --terminal-yellow: #e2c87a;
+      --terminal-red: #e87c7c;
+      --code-bg: #0e0e14;
+      --font-display: "Instrument Serif", Georgia, serif;
+      --font-body: "DM Sans", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    ::selection { background: var(--accent); color: var(--bg); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--surface-border); border-radius: 3px; }
+
+    /* Noise overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Hero ── */
+    header { padding: 80px 0 64px; text-align: center; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,146,124,0.2);
+      margin-bottom: 32px;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .badge span {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(48px, 8vw, 72px);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      color: var(--text-sec);
+      font-size: 18px;
+      margin-top: 20px;
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ── Progress nav ── */
+    .progress-nav {
+      position: fixed;
+      left: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    @media (max-width: 1024px) { .progress-nav { display: none; } }
+
+    .progress-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 0;
+      text-decoration: none;
+    }
+    .nav-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--surface-border);
+      transition: all 0.3s;
+    }
+    .nav-dot.active { background: rgba(232,146,124,0.6); }
+    .nav-dot.done { background: var(--accent); }
+    .nav-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-tert);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .nav-label.active { color: var(--accent); opacity: 1; }
+    .progress-nav a:hover .nav-label { opacity: 1; }
+    .nav-line {
+      width: 1px; height: 20px;
+      background: var(--surface-border);
+      margin-left: 3.5px;
+      transition: background 0.3s;
+    }
+    .nav-line.done { background: rgba(232,146,124,0.4); }
+
+    /* ── Sections ── */
+    .sections { padding-bottom: 128px; display: flex; flex-direction: column; gap: 20px; }
+
+    .section {
+      border-radius: 16px;
+      border: 1px solid var(--surface-border);
+      background: var(--surface);
+      scroll-margin-top: 32px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+    .section.open {
+      border-color: rgba(232,146,124,0.2);
+      box-shadow: 0 8px 40px var(--accent-glow);
+    }
+
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .section:nth-child(2) { animation-delay: 0.1s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+    .section:nth-child(4) { animation-delay: 0.3s; }
+    .section:nth-child(5) { animation-delay: 0.4s; }
+    .section:nth-child(6) { animation-delay: 0.5s; }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 24px 32px;
+      cursor: pointer;
+      user-select: none;
+      width: 100%;
+      border: none;
+      background: none;
+      color: inherit;
+      text-align: left;
+      font: inherit;
+    }
+    @media (max-width: 640px) { .section-header { padding: 20px; gap: 14px; } }
+
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-tert);
+      margin-top: 4px;
+      transition: color 0.3s;
+    }
+    .section.open .section-num { color: var(--accent); }
+
+    .section-header h2 {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 4vw, 30px);
+      font-weight: 400;
+      line-height: 1.2;
+      transition: color 0.2s;
+    }
+    .section-header:hover h2 { color: var(--accent); }
+
+    .section-subtitle {
+      color: var(--text-sec);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .section-header .flex-1 { flex: 1; min-width: 0; }
+
+    .chevron {
+      color: var(--text-tert);
+      margin-top: 8px;
+      flex-shrink: 0;
+      transition: transform 0.25s;
+    }
+    .section.open .chevron { transform: rotate(180deg); }
+
+    .section-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s;
+      opacity: 0;
+    }
+    .section.open .section-body {
+      max-height: 5000px;
+      opacity: 1;
+    }
+    .section-content {
+      padding: 0 32px 32px;
+      margin-left: 0;
+    }
+    @media (min-width: 640px) { .section-content { margin-left: 52px; } }
+    @media (max-width: 640px) { .section-content { padding: 0 20px 24px; } }
+
+    /* ── Content elements ── */
+    .callout {
+      padding: 16px;
+      border-radius: 8px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(232,146,124,0.1);
+    }
+    .callout-accent { color: var(--accent); font-weight: 600; }
+
+    .surface-box {
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(26,26,37,0.5);
+      border: 1px solid var(--surface-border);
+    }
+
+    .content-stack { display: flex; flex-direction: column; gap: 24px; }
+    .content-stack-tight { display: flex; flex-direction: column; gap: 12px; }
+    .content-stack-sm { display: flex; flex-direction: column; gap: 16px; }
+
+    .step-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 2px 10px;
+      border-radius: 4px;
+    }
+    .step-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-left: 8px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .text-sm { font-size: 16px; color: var(--text-sec); line-height: 1.75; }
+    .text-xs { font-size: 14px; color: var(--text-tert); line-height: 1.6; }
+    .text-strong { color: var(--text); font-weight: 500; }
+
+    ul.features { list-style: none; padding: 0; }
+    ul.features li {
+      display: flex;
+      gap: 8px;
+      font-size: 16px;
+      color: var(--text-sec);
+      line-height: 1.75;
+    }
+    ul.features li::before { content: "\2022"; color: var(--accent); }
+
+    /* ── Code blocks ── */
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--surface-border);
+      background: var(--code-bg);
+      position: relative;
+    }
+    .code-block-header {
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--surface-border);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-tert);
+    }
+    .code-block pre {
+      padding: 16px;
+      overflow-x: auto;
+      margin: 0;
+    }
+    .code-block code {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--text-sec);
+      line-height: 1.7;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px; right: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--surface-hover);
+      border: 1px solid var(--surface-border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-tert);
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s;
+    }
+    .code-block:hover .copy-btn { opacity: 1; }
+    .copy-btn:hover { color: var(--text); border-color: rgba(232,146,124,0.3); }
+    .code-block-header + pre + .copy-btn { top: 40px; }
+
+    /* ── Mode cards ── */
+    .mode-card {
+      padding: 16px;
+      border-radius: 8px;
+    }
+    .mode-card.green { border: 1px solid rgba(125,211,160,0.2); background: rgba(125,211,160,0.03); }
+    .mode-card.cyan { border: 1px solid rgba(124,200,214,0.2); background: rgba(124,200,214,0.03); }
+    .mode-card.red { border: 1px solid rgba(232,124,124,0.2); background: rgba(232,124,124,0.03); }
+    .mode-label { font-size: 16px; margin-top: 12px; color: var(--text-sec); line-height: 1.75; }
+    .mode-label strong.green { color: var(--terminal-green); }
+    .mode-label strong.cyan { color: var(--terminal-cyan); }
+    .mode-label strong.red { color: var(--terminal-red); }
+
+    /* ── Terminal mockup ── */
+    .terminal {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--surface-border);
+      background: var(--terminal-bg);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--surface-border);
+    }
+    .terminal-dots { display: flex; gap: 6px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.r { background: rgba(232,124,124,0.7); }
+    .terminal-dot.y { background: rgba(226,200,122,0.7); }
+    .terminal-dot.g { background: rgba(125,211,160,0.7); }
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-tert);
+      margin-left: 8px;
+    }
+    .terminal-body {
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.7;
+      min-height: 120px;
+    }
+    .t-prompt { color: var(--terminal-green); }
+    .t-cmd { color: var(--text); }
+    .t-output { color: var(--text-sec); white-space: pre-wrap; }
+    .t-cursor {
+      display: inline-block;
+      width: 8px; height: 16px;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── Expandable ── */
+    .expandable {
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .expandable-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(26,26,37,0.3);
+      border: none;
+      color: var(--text-sec);
+      font: inherit;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.2s;
+    }
+    .expandable-trigger:hover { color: var(--accent); }
+    .expandable-arrow {
+      font-size: 10px;
+      transition: transform 0.15s;
+    }
+    .expandable.open .expandable-arrow { transform: rotate(90deg); }
+    .expandable-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .expandable.open .expandable-body { max-height: 3000px; }
+    .expandable-content {
+      padding: 16px;
+      border-top: 1px solid var(--surface-border);
+      font-size: 16px;
+      color: var(--text-sec);
+      line-height: 1.75;
+    }
+
+    /* ── Concept steps ── */
+    .concept-step {
+      display: flex;
+      gap: 12px;
+    }
+    .concept-num {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,146,124,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+    .concept-title { font-size: 16px; font-weight: 500; color: var(--text); }
+    .concept-desc { font-size: 16px; color: var(--text-sec); margin-top: 2px; line-height: 1.75; }
+
+    .concept-chain {
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      border: 1px solid var(--surface-border);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-tert);
+    }
+    .chain-item { display: inline; }
+    .chain-arrow { margin: 0 8px; }
+    .c-cyan { color: var(--terminal-cyan); }
+    .c-yellow { color: var(--terminal-yellow); }
+    .c-accent { color: var(--accent); }
+    .c-small { font-size: 10px; }
+
+    /* ── Status bar preview ── */
+    .statusbar-preview {
+      padding: 16px;
+      border-radius: 8px;
+      background: var(--terminal-bg);
+      border: 1px solid var(--surface-border);
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .sb-sep { color: var(--text-tert); margin: 0 8px; }
+
+    /* ── Skill cards ── */
+    .skill-card {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(26,26,37,0.5);
+      border: 1px solid var(--surface-border);
+    }
+    .skill-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .skill-desc { font-size: 16px; color: var(--text-sec); line-height: 1.6; }
+
+    code.inline {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding-top: 64px;
+      text-align: center;
+    }
+    footer p {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-tert);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Progress nav -->
+  <nav class="progress-nav" id="progressNav"></nav>
+
+  <!-- Hero -->
+  <header>
+    <div class="container">
+      <div class="badge">
+        <div class="badge-dot"></div>
+        <span>getting started guide</span>
+      </div>
+      <h1>Claude Code</h1>
+      <p>From zero to productive. A step-by-step guide to setting up and using Claude Code in the terminal.</p>
+    </div>
+  </header>
+
+  <!-- Sections -->
+  <main class="container sections">
+
+    <!-- ═══ 1. What is Claude Code? ═══ -->
+    <div class="section" id="what" data-id="what">
+      <button class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">01</span>
+        <div class="flex-1">
+          <h2>What is Claude Code?</h2>
+          <p class="section-subtitle">Understanding what you're working with</p>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="section-body">
+        <div class="section-content content-stack">
+          <div class="callout">
+            <p class="text-sm"><span class="callout-accent">Simply put:</span> Claude Code is an AI assistant that can read, write, and run code on your computer. You talk to it in plain English, and it does the technical work.</p>
+          </div>
+          <div class="surface-box">
+            <p class="text-sm"><span class="text-strong">Properly:</span> Claude Code is an agentic coding harness &mdash; the scaffolding that gives an AI agent the ability to do things on your machine: read files, write code, run commands, connect to external tools, and execute multi-step workflows autonomously.</p>
+          </div>
+
+          <div class="expandable" onclick="toggleExpandable(this)">
+            <button class="expandable-trigger">
+              <span class="expandable-arrow">&#9654;</span>
+              What do those terms mean?
+            </button>
+            <div class="expandable-body">
+              <div class="expandable-content content-stack-sm">
+                <div class="concept-step">
+                  <div class="concept-num">1</div>
+                  <div>
+                    <p class="concept-title">LLM</p>
+                    <p class="concept-desc">The intelligence. This is Claude &mdash; the AI model that understands language and can reason about problems. When most people use Claude, it's a conversation: you ask, it answers.</p>
+                  </div>
+                </div>
+                <div class="concept-step">
+                  <div class="concept-num">2</div>
+                  <div>
+                    <p class="concept-title">AI Agent</p>
+                    <p class="concept-desc">What happens when you give the LLM access to <span class="text-strong">tools</span> and the ability to <span class="text-strong">execute</span>. It can read files, run commands, call APIs, make decisions about what to do next, and carry out multi-step tasks on its own.</p>
+                  </div>
+                </div>
+                <div class="concept-step">
+                  <div class="concept-num">3</div>
+                  <div>
+                    <p class="concept-title">Harness</p>
+                    <p class="concept-desc">The system that makes it all possible. It defines what tools the agent can use, what permissions it has, what integrations it connects to, how it retains memory. Claude Code is that harness.</p>
+                  </div>
+                </div>
+                <div class="concept-chain">
+                  <span class="chain-item c-cyan">LLM</span>
+                  <span class="chain-arrow">&rarr;</span>
+                  <span class="chain-item c-yellow">Agent</span>
+                  <span class="c-small">(LLM + tools + execution)</span>
+                  <span class="chain-arrow">&rarr;</span>
+                  <span class="chain-item c-accent">Harness</span>
+                  <span class="c-small">(the wiring)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 2. Get Claude Code Running ═══ -->
+    <div class="section" id="setup" data-id="setup">
+      <button class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">02</span>
+        <div class="flex-1">
+          <h2>Get Claude Code Running</h2>
+          <p class="section-subtitle">Install and launch in under 5 minutes</p>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="section-body">
+        <div class="section-content content-stack">
+
+          <!-- Step 1 -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 1</span><span class="step-title">Open your terminal</span></div>
+            <p class="text-sm">The terminal is just a text-based way to talk to your computer. Instead of clicking folders, you type commands. On Mac, search for "Terminal" in Spotlight (Cmd + Space).</p>
+            <div class="callout">
+              <p class="text-xs"><span class="callout-accent">Pro tip:</span> Ask the Claude desktop app: "How do I open and use the terminal on Mac?" It'll walk you through it.</p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 2</span><span class="step-title">Install Claude Code</span></div>
+            <div class="code-block">
+              <pre><code>npm install -g @anthropic-ai/claude-code</code></pre>
+              <button class="copy-btn" onclick="copyCode(this, event)">copy</button>
+            </div>
+            <p class="text-xs">This installs Claude Code globally so you can run it from anywhere.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="content-stack-sm">
+            <div><span class="step-badge">step 3</span><span class="step-title">Choose how to launch</span></div>
+
+            <div class="mode-card green">
+              <div class="code-block"><pre><code>claude</code></pre><button class="copy-btn" onclick="copyCode(this, event)">copy</button></div>
+              <p class="mode-label"><strong class="green">Default &mdash; start here.</strong> Asks your permission before every action. You'll approve each file edit and command. Safest way to learn.</p>
+            </div>
+
+            <div class="mode-card cyan">
+              <div class="code-block"><pre><code>claude --permission-mode auto</code></pre><button class="copy-btn" onclick="copyCode(this, event)">copy</button></div>
+              <p class="mode-label"><strong class="cyan">The sweet spot.</strong> Runs autonomously, but a background classifier blocks dangerous operations (mass deletes, force pushes) while letting safe ones through.</p>
+            </div>
+
+            <div class="mode-card red">
+              <div class="code-block"><pre><code>claude --dangerously-skip-permissions</code></pre><button class="copy-btn" onclick="copyCode(this, event)">copy</button></div>
+              <p class="mode-label"><strong class="red">No guardrails.</strong> Skips all permission checks. The name is intentionally scary. Only for throwaway environments where nothing important can break.</p>
+            </div>
+          </div>
+
+          <!-- Terminal demo -->
+          <div class="terminal" id="terminal-setup">
+            <div class="terminal-bar">
+              <div class="terminal-dots"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div></div>
+              <span class="terminal-title">Getting started</span>
+            </div>
+            <div class="terminal-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 3. Level Up Your Terminal ═══ -->
+    <div class="section" id="terminal" data-id="terminal">
+      <button class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">03</span>
+        <div class="flex-1">
+          <h2>Level Up Your Terminal</h2>
+          <p class="section-subtitle">iTerm2 + shell config that makes everything easier</p>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="section-body">
+        <div class="section-content content-stack">
+          <p class="text-sm">The default Mac terminal works, but <span class="text-strong">iTerm2</span> is significantly better. Combined with a few shell tweaks, you get tab completion, shared history, and a cleaner experience. Let's set it all up from scratch.</p>
+
+          <!-- Step 1: Open Terminal -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 1</span><span class="step-title">Open Terminal</span></div>
+            <p class="text-sm">Press <code class="inline">Cmd + Space</code> to open Spotlight, type <code class="inline">Terminal</code>, and hit Enter. This opens the built-in Mac terminal &mdash; we'll use it to install everything else.</p>
+          </div>
+
+          <!-- Step 2: Install Homebrew -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 2</span><span class="step-title">Install Homebrew</span></div>
+            <p class="text-sm">Homebrew is a package manager for Mac &mdash; it lets you install software from the terminal. Paste this command and hit Enter:</p>
+            <div class="code-block"><pre><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre><button class="copy-btn" onclick="copyCode(this, event)">copy</button></div>
+            <p class="text-xs">It will ask for your password (the one you use to log into your Mac). You won't see characters as you type &mdash; that's normal. Just type it and hit Enter.</p>
+            <div class="callout">
+              <p class="text-xs"><span class="callout-accent">Important:</span> When it finishes, it will show "Next steps" with two commands to run. Copy and paste those commands &mdash; they add Homebrew to your path so you can use it.</p>
+            </div>
+          </div>
+
+          <!-- Step 3: Install iTerm2 -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 3</span><span class="step-title">Install iTerm2</span></div>
+            <p class="text-sm">Now use Homebrew to install iTerm2:</p>
+            <div class="code-block"><pre><code>brew install --cask iterm2</code></pre><button class="copy-btn" onclick="copyCode(this, event)">copy</button></div>
+            <p class="text-xs">Once installed, open iTerm2 from Spotlight (<code class="inline">Cmd + Space</code>, type <code class="inline">iTerm</code>). From now on, use iTerm2 instead of the default Terminal.</p>
+          </div>
+
+          <!-- Step 4: Install Starship -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 4</span><span class="step-title">Install Starship prompt</span></div>
+            <p class="text-sm">Starship gives you a clean, informative prompt that shows your current folder, git branch, and more:</p>
+            <div class="code-block"><pre><code>brew install starship</code></pre><button class="copy-btn" onclick="copyCode(this, event)">copy</button></div>
+          </div>
+
+          <!-- Step 5: Shell config -->
+          <div class="content-stack-tight">
+            <div><span class="step-badge">step 5</span><span class="step-title">Configure your shell</span></div>
+            <p class="text-sm">Your terminal has a settings file called <code class="inline">.zshrc</code> that runs every time you open a new window. We're going to add some settings that make it much nicer to use. You don't need to understand this file &mdash; just paste the command below into iTerm2 and hit Enter.</p>
+            <p class="text-sm">This one command backs up your existing settings (if any) and installs everything for you:</p>
+            <div class="code-block">
+              <pre><code>[ -f ~/.zshrc ] && cp ~/.zshrc ~/.zshrc.backup.$(date +%s); cat > ~/.zshrc << 'ENDCONFIG'
+# ── Homebrew ──
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# ── Starship prompt ──
+eval "$(starship init zsh)"
+
+# ── Tab completion (case-insensitive) ──
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+setopt COMPLETE_IN_WORD
+
+# ── History (shared across sessions) ──
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+
+# ── Aliases ──
+alias ll="ls -la"
+alias gs="git status"
+alias gc="git commit"
+alias gp="git push"
+
+# ── PATH ──
+export PATH="$HOME/.local/bin:$PATH"
+ENDCONFIG
+source ~/.zshrc && echo "✓ Shell configured!"</code></pre>
+              <button class="copy-btn" onclick="copyCode(this, event)">copy</button>
+            </div>
+            <p class="text-sm">When you see <span class="text-strong">✓ Shell configured!</span> you're done. Here's what you just got:</p>
+            <ul class="features">
+              <li><span><span class="text-strong">Tab completion</span> that's case-insensitive &mdash; type <code class="inline">cd doc</code> + Tab and it auto-completes to <code class="inline">Documents</code></span></li>
+              <li><span><span class="text-strong">Shared history</span> across all terminal sessions</span></li>
+              <li><span><span class="text-strong">Shortcuts</span> like <code class="inline">gs</code> for git status, <code class="inline">ll</code> for listing files</span></li>
+            </ul>
+
+            <div class="expandable" onclick="toggleExpandable(this)">
+              <button class="expandable-trigger">
+                <span class="expandable-arrow">&#9654;</span>
+                What did that command just do?
+              </button>
+              <div class="expandable-body">
+                <div class="expandable-content content-stack-tight">
+                  <p class="text-sm">Three things:</p>
+                  <ul class="features">
+                    <li><span>If you had an existing <code class="inline">.zshrc</code> file, it saved a backup (named with a timestamp so nothing gets lost)</span></li>
+                    <li><span>Wrote the new shell config to <code class="inline">~/.zshrc</code></span></li>
+                    <li><span>Reloaded the config so it takes effect immediately</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terminal demo -->
+          <div class="terminal" id="terminal-iterm">
+            <div class="terminal-bar">
+              <div class="terminal-dots"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div></div>
+              <span class="terminal-title">iTerm2 — with your new config</span>
+            </div>
+            <div class="terminal-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 4. Customize Claude Code ═══ -->
+    <div class="section" id="customize" data-id="customize">
+      <button class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">04</span>
+        <div class="flex-1">
+          <h2>Customize Claude Code</h2>
+          <p class="section-subtitle">One tweak that makes a big difference</p>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="section-body">
+        <div class="section-content content-stack">
+          <p class="text-sm">Claude Code works great out of the box, but there's one customization worth doing right away: a <span class="text-strong">status bar</span> that shows you what's happening at a glance.</p>
+
+          <div class="content-stack-tight">
+            <h3>Add a status bar</h3>
+            <p class="text-sm">See your model, how much context window you've used, your git branch, and current directory. The context percentage is especially useful &mdash; when it gets high, you know it's time to start a fresh session.</p>
+            <div class="statusbar-preview">
+              <span style="color:var(--terminal-green)">Claude Opus 4.6</span>
+              <span class="sb-sep">|</span>
+              <span style="color:var(--accent)">[██████░░░░]</span>
+              <span style="color:var(--text-sec);margin-left:4px">60%</span>
+              <span class="sb-sep">|</span>
+              <span style="color:var(--terminal-cyan)">main</span>
+              <span class="sb-sep">|</span>
+              <span style="color:var(--text-sec)">~/Documents/code</span>
+            </div>
+
+            <p class="text-sm">Paste this into iTerm2 and hit Enter &mdash; it creates the status bar script and sets it up automatically:</p>
+            <div class="code-block">
+              <pre><code>mkdir -p ~/.claude && cat > ~/.claude/statusline.sh << 'ENDSCRIPT'
+#!/usr/bin/env bash
+
+MODEL="Claude Opus 4.6"
+CONTEXT_PCT=${CLAUDE_CONTEXT_PERCENT:-0}
+
+# Build progress bar
+BAR_LEN=10
+FILLED=$(( CONTEXT_PCT * BAR_LEN / 100 ))
+EMPTY=$(( BAR_LEN - FILLED ))
+BAR=$(printf '%0.s█' $(seq 1 $FILLED 2>/dev/null))
+BAR+=$(printf '%0.s░' $(seq 1 $EMPTY 2>/dev/null))
+
+# Git branch
+BRANCH=$(git branch --show-current 2>/dev/null)
+
+# Current dir
+DIR=${PWD/#$HOME/\~}
+
+echo "$MODEL | [$BAR] $CONTEXT_PCT% | $BRANCH | $DIR"
+ENDSCRIPT
+chmod +x ~/.claude/statusline.sh && echo "✓ Status bar configured!"</code></pre>
+              <button class="copy-btn" onclick="copyCode(this, event)">copy</button>
+            </div>
+            <p class="text-xs">When you see <span class="text-strong">✓ Status bar configured!</span> you're done. Next time you open Claude Code, the status bar will appear at the bottom.</p>
+
+            <div class="expandable" onclick="toggleExpandable(this)">
+              <button class="expandable-trigger">
+                <span class="expandable-arrow">&#9654;</span>
+                What did that command just do?
+              </button>
+              <div class="expandable-body">
+                <div class="expandable-content content-stack-tight">
+                  <p class="text-sm">Three things:</p>
+                  <ul class="features">
+                    <li><span>Created the <code class="inline">~/.claude</code> folder if it didn't exist yet</span></li>
+                    <li><span>Wrote a small script that displays your model, context usage, git branch, and directory</span></li>
+                    <li><span>Made the script executable so Claude Code can run it</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <p class="text-sm"><span class="callout-accent">This is harness engineering</span> &mdash; configuring the environment so the agent works better for you. The status line is just the start. As you get more comfortable, you can add project-specific instructions, custom permissions, and more.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 5. Add Superpowers ═══ -->
+    <div class="section" id="skills" data-id="skills">
+      <button class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">05</span>
+        <div class="flex-1">
+          <h2>Add Superpowers with Skills</h2>
+          <p class="section-subtitle">Reusable prompt templates that give Claude specialized abilities</p>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="section-body">
+        <div class="section-content content-stack">
+          <p class="text-sm">Skills are reusable prompt templates that give Claude deep expertise in specific domains. Instead of explaining what you want every time, you invoke a skill and it just knows.</p>
+
+          <div class="content-stack-tight">
+            <h3>Example skills</h3>
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--terminal-green)">/humanizer</code>
+              <span class="skill-desc">Removes AI-writing patterns from text. Makes drafts sound natural and human. Great for emails, docs, and anything customer-facing.</span>
+            </div>
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--terminal-cyan)">/frontend-design</code>
+              <span class="skill-desc">Builds production-grade UIs with distinctive design. No generic AI slop. This page was built with it.</span>
+            </div>
+          </div>
+
+          <div class="content-stack-tight">
+            <h3>See your skills</h3>
+            <p class="text-sm">Type <code class="inline">/</code> inside Claude Code to see all available slash commands and skills.</p>
+          </div>
+
+          <div class="content-stack-tight">
+            <h3>Find more skills</h3>
+            <p class="text-sm">Browse the <a href="https://skillsmp.com/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px">Skills Marketplace</a> to find community-built skills for everything from code review to copywriting. Install them and they're immediately available in your Claude Code sessions.</p>
+          </div>
+
+          <!-- Terminal demo -->
+          <div class="terminal" id="terminal-skills">
+            <div class="terminal-bar">
+              <div class="terminal-dots"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div></div>
+              <span class="terminal-title">Using a skill</span>
+            </div>
+            <div class="terminal-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 6. Recommended Tools ═══ -->
+    <div class="section" id="tools" data-id="tools">
+      <button class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">06</span>
+        <div class="flex-1">
+          <h2>Recommended Tools</h2>
+          <p class="section-subtitle">Two apps that make the whole experience better</p>
+        </div>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="section-body">
+        <div class="section-content content-stack">
+
+          <!-- Wispr Flow -->
+          <div class="content-stack-tight">
+            <h3>Wispr Flow</h3>
+            <p class="text-sm"><a href="https://wispr.com/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px">Wispr Flow</a> is a voice dictation tool that works everywhere on your Mac. Instead of typing prompts to Claude Code, you just talk. It's dramatically faster for describing what you want built, explaining bugs, or giving detailed instructions. Once you try it, typing prompts feels painfully slow.</p>
+            <div class="callout">
+              <p class="text-sm"><span class="callout-accent">Why it matters:</span> The better your prompts are, the better Claude Code's output is. Speaking naturally lets you give more context and detail than you'd ever bother typing.</p>
+            </div>
+          </div>
+
+          <!-- Raycast -->
+          <div class="content-stack-tight">
+            <h3>Raycast</h3>
+            <p class="text-sm"><a href="https://raycast.com/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px">Raycast</a> is a Spotlight replacement that does way more. It's free and once you set it up, you'll wonder how you worked without it. Here's what to configure:</p>
+
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--terminal-green);min-width:130px">Window Mgmt</code>
+              <span class="skill-desc">Snap windows to halves, thirds, or quarters with keyboard shortcuts. Essential for putting your terminal and browser side by side.</span>
+            </div>
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--terminal-cyan);min-width:130px">Clipboard History</code>
+              <span class="skill-desc">Keeps everything you've copied. Huge when you're moving code, commands, or text between Claude Code sessions and other apps.</span>
+            </div>
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--terminal-yellow);min-width:130px">Snippets</code>
+              <span class="skill-desc">Save frequently used prompts or commands and expand them with a short keyword. Type ";;cc" and it expands to your full Claude Code launch command.</span>
+            </div>
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--accent);min-width:130px">Quicklinks</code>
+              <span class="skill-desc">Jump straight to GitHub repos, Linear projects, or Notion pages from anywhere with a couple keystrokes.</span>
+            </div>
+            <div class="skill-card">
+              <code class="skill-name" style="color:var(--terminal-green);min-width:130px">File Search</code>
+              <span class="skill-desc">Faster than Spotlight for finding project files, documents, and apps on your machine.</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>built with Claude Code, obviously</p>
+    </footer>
+  </main>
+
+  <script>
+    // ── Section toggle ──
+    function toggleSection(btn) {
+      const section = btn.closest('.section');
+      const wasOpen = section.classList.contains('open');
+      section.classList.toggle('open');
+
+      // Scroll to section when opening
+      if (!wasOpen) {
+        setTimeout(() => {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+
+        // Start terminal animation if present
+        const termId = section.querySelector('.terminal')?.id;
+        if (termId && !animatedTerminals.has(termId)) {
+          animatedTerminals.add(termId);
+          runTerminal(termId);
+        }
+      }
+    }
+
+    // ── Expandable toggle ──
+    function toggleExpandable(el) {
+      el.classList.toggle('open');
+      event.stopPropagation();
+    }
+
+    // ── Copy button ──
+    function copyCode(btn, e) {
+      e.stopPropagation();
+      const code = btn.closest('.code-block').querySelector('code').textContent;
+      navigator.clipboard.writeText(code);
+      btn.textContent = 'copied!';
+      setTimeout(() => btn.textContent = 'copy', 2000);
+    }
+
+    // ── Terminal animations ──
+    const animatedTerminals = new Set();
+
+    const terminalScripts = {
+      'terminal-setup': [
+        { prompt: '~ $', command: 'claude' },
+        { output: '\n  Welcome to Claude Code v2.1\n  Type your request in plain English.\n' },
+        { prompt: 'claude>', command: 'What files are in this folder?' },
+        { output: '\n  I\'ll check that for you.\n\n  Found 12 files:\n  ├── package.json\n  ├── src/\n  │   ├── app/\n  │   └── components/\n  └── README.md' },
+      ],
+      'terminal-iterm': [
+        { prompt: '~/Documents $', command: 'cd cod' },
+        { output: '  → cd code/        (tab-completed!)' },
+        { prompt: '~/Documents/code $', command: 'gs' },
+        { output: '  On branch main\n  nothing to commit, working tree clean' },
+      ],
+      'terminal-skills': [
+        { prompt: 'claude>', command: '/humanizer' },
+        { output: '\n  Skill loaded: Humanizer\n  Paste the text you\'d like to make more natural.\n' },
+        { prompt: 'claude>', command: 'Here\'s my draft email about the Q2 launch...' },
+        { output: '\n  Analyzing for AI-writing patterns...\n  Found 4 patterns to fix:\n  → Removed "I hope this email finds you well"\n  → Replaced "leverage" with "use"\n  → Shortened 2 run-on sentences\n  → Made the CTA more direct' },
+      ],
+    };
+
+    async function runTerminal(id) {
+      const el = document.querySelector(`#${id} .terminal-body`);
+      const lines = terminalScripts[id];
+      if (!el || !lines) return;
+      el.innerHTML = '';
+
+      for (const line of lines) {
+        if (line.prompt) {
+          const div = document.createElement('div');
+          const promptSpan = document.createElement('span');
+          promptSpan.className = 't-prompt';
+          promptSpan.textContent = line.prompt;
+          div.appendChild(promptSpan);
+
+          const cmdSpan = document.createElement('span');
+          cmdSpan.className = 't-cmd';
+          cmdSpan.textContent = ' ';
+          div.appendChild(cmdSpan);
+
+          const cursor = document.createElement('span');
+          cursor.className = 't-cursor';
+          div.appendChild(cursor);
+
+          el.appendChild(div);
+
+          // Type out command
+          for (let i = 0; i < line.command.length; i++) {
+            await sleep(30 + Math.random() * 40);
+            cmdSpan.textContent += line.command[i];
+          }
+          cursor.remove();
+          await sleep(400);
+        }
+
+        if (line.output) {
+          const div = document.createElement('div');
+          div.className = 't-output';
+          div.textContent = line.output;
+          el.appendChild(div);
+          await sleep(300);
+        }
+      }
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ── Progress nav ──
+    const navSections = [
+      { id: 'what', label: 'What is it?' },
+      { id: 'setup', label: 'Get running' },
+      { id: 'terminal', label: 'Level up' },
+      { id: 'customize', label: 'Customize' },
+      { id: 'skills', label: 'Superpowers' },
+      { id: 'tools', label: 'Tools' },
+    ];
+
+    function buildNav() {
+      const nav = document.getElementById('progressNav');
+      navSections.forEach((s, i) => {
+        const a = document.createElement('a');
+        a.href = `#${s.id}`;
+        a.innerHTML = `
+          <div class="nav-dot" data-nav="${s.id}"></div>
+          <span class="nav-label" data-nav-label="${s.id}">${s.label}</span>
+        `;
+        nav.appendChild(a);
+        if (i < navSections.length - 1) {
+          const line = document.createElement('div');
+          line.className = 'nav-line';
+          line.dataset.navLine = s.id;
+          nav.appendChild(line);
+        }
+      });
+    }
+    buildNav();
+
+    // Intersection observer for nav
+    const seen = new Set();
+    let currentActive = '';
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.dataset.id;
+          seen.add(id);
+          currentActive = id;
+          updateNav();
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '-20% 0px -60% 0px' });
+
+    document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+    function updateNav() {
+      navSections.forEach(s => {
+        const dot = document.querySelector(`[data-nav="${s.id}"]`);
+        const label = document.querySelector(`[data-nav-label="${s.id}"]`);
+        const line = document.querySelector(`[data-nav-line="${s.id}"]`);
+
+        dot.classList.remove('active', 'done');
+        label.classList.remove('active');
+        if (line) line.classList.remove('done');
+
+        if (s.id === currentActive) {
+          dot.classList.add('active');
+          label.classList.add('active');
+        }
+        if (seen.has(s.id) && s.id !== currentActive) {
+          dot.classList.add('done');
+        }
+        if (seen.has(s.id) && line) {
+          line.classList.add('done');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
